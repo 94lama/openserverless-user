@@ -1,68 +1,76 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { UserModal } from "./UserModal";
 import { UserTable } from "./UserTable";
 import { User, CreateUserDto } from "@/types/user";
 import { useToast } from "@/hooks/use-toast";
 import nuvolaris_logo from "@/assets/nuvolaris-logo.png";
+import { listuser, adduser, deleteuser } from "@/lib/addressClient";
 
 export const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      username: "admin",
-      email: "admin@nuvolaris.io",
-      password: "********",
-      assets: {
-        all: true,
-        redis: true,
-        mongodb: true,
-        minio: true,
-        postgres: true,
-        milvus: false,
-      },
-      createdAt: new Date("2024-01-15"),
-      updatedAt: new Date("2024-01-15"),
-    },
-    {
-      id: "2", 
-      username: "developer",
-      email: "dev@nuvolaris.io",
-      password: "********",
-      assets: {
-        all: false,
-        redis: true,
-        mongodb: true,
-        minio: false,
-        postgres: true,
-        milvus: false,
-      },
-      createdAt: new Date("2024-01-20"),
-      updatedAt: new Date("2024-01-22"),
-    },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const { toast } = useToast();
 
-  const handleCreateUser = (userData: CreateUserDto) => {
-    const newUser: User = {
-      id: Date.now().toString(),
-      ...userData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  const loadUsers = async () => {
+    try {
+      const records = await listuser();
+      const mapped: User[] = records.map((r) => {
+        const all = r.redis && r.mongodb && r.minio && r.postgres && r.milvus;
+        return {
+          id: r.username,
+          username: r.username,
+          email: r.email,
+          password: r.password,
+          assets: {
+            all,
+            redis: r.redis,
+            mongodb: r.mongodb,
+            minio: r.minio,
+            postgres: r.postgres,
+            milvus: r.milvus,
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      });
+      setUsers(mapped);
+    } catch (err) {
+      toast({ title: "Failed to load users", description: String(err), variant: "destructive" });
+    }
+  };
 
-    setUsers(prev => [...prev, newUser]);
-    setIsModalOpen(false);
-    
-    toast({
-      title: "Namespace Created",
-      description: `Namespace "${userData.username}" has been created successfully.`,
-    });
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const handleCreateUser = async (userData: CreateUserDto) => {
+    try {
+      await adduser({
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        options: {
+          redis: userData.assets.redis,
+          postgres: userData.assets.postgres,
+          minio: userData.assets.minio,
+          milvus: userData.assets.milvus,
+          mongodb: userData.assets.mongodb,
+        },
+      });
+      await loadUsers();
+      setIsModalOpen(false);
+      toast({
+        title: "Namespace Created",
+        description: `Namespace "${userData.username}" has been created successfully.`,
+      });
+    } catch (err) {
+      toast({ title: "Create failed", description: String(err), variant: "destructive" });
+    }
   };
 
   const handleEditUser = (userData: CreateUserDto) => {
@@ -87,17 +95,20 @@ export const UserManagement = () => {
     });
   };
 
-  const handleDeleteUser = (userId: string) => {
+  const handleDeleteUser = async (userId: string) => {
     const user = users.find(u => u.id === userId);
     if (!user) return;
-
-    setUsers(prev => prev.filter(user => user.id !== userId));
-    
-    toast({
-      title: "Namespace Deleted",
-      description: `Namespace "${user.username}" has been deleted successfully.`,
-      variant: "destructive",
-    });
+    try {
+      await deleteuser(user.username);
+      await loadUsers();
+      toast({
+        title: "Namespace Deleted",
+        description: `Namespace "${user.username}" has been deleted successfully.`,
+        variant: "destructive",
+      });
+    } catch (err) {
+      toast({ title: "Delete failed", description: String(err), variant: "destructive" });
+    }
   };
 
   const openEditModal = (user: User) => {
