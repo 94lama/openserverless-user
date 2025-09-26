@@ -1,9 +1,9 @@
 export interface User {
-  id: string;
-  username: string;
-  email: string;
-  password: string;
-  assets: {
+  //id: string;
+  name: string;
+  email?: string;
+  password?: string;
+  options: {
     all: boolean;
     redis: boolean;
     mongodb: boolean;
@@ -11,20 +11,21 @@ export interface User {
     postgres: boolean;
     milvus: boolean;
   };
-  createdAt: Date;
-  updatedAt: Date;
+  //createdAt: Date;
+  //updatedAt: Date;
 }
 
 export interface CreateUserDto {
-  username: string;
-  email: string;
-  password: string;
-  assets: {
+  name: string;
+  email?: string;
+  password?: string;
+  options: {
     all: boolean;
     redis: boolean;
     mongodb: boolean;
     minio: boolean;
     postgres: boolean;
     milvus: boolean;
+    couchdb: boolean;
   };
 }

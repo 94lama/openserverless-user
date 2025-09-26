@@ -1,6 +1,14 @@
 // HTTP client for OpenServerless web action lovable/admin/address
 // Uses VITE_OPENSERVERLESS_BASE_URL to construct the full URL, or relative if not set
 
+import { User } from "@/types/user";
+
+export type WebActionResponse<T> = {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: T;
+};
+
 export type AddressUserRecord = {
   username: string;
   email: string;
@@ -37,31 +45,33 @@ async function handle<T>(res: Response): Promise<T> {
   const contentType = res.headers.get("content-type") || "";
   const body = contentType.includes("application/json") ? await res.json() : await res.text();
   if (!res.ok) {
-    const message = typeof body === "string" ? body : (body?.error || JSON.stringify(body));
+    const message = body;
     throw new Error(message || `HTTP ${res.status}`);
   }
   return body as T;
 }
 
-export async function listuser(): Promise<AddressUserRecord[]> {
-  const res = await fetch(`${buildBase()}/listuser`, {
+export async function listuser(): Promise<User[]> {
+  const res = await fetch(`${buildBase()}?action=listuser`, {
     method: "GET",
     headers: { "accept": "application/json" },
   });
-  return handle<AddressUserRecord[]>(res);
+
+  const response = await handle<WebActionResponse<User[]>>(res);
+  return response.body;
 }
 
-export async function adduser(payload: AddUserPayload): Promise<AddressUserRecord> {
-  const res = await fetch(`${buildBase()}/adduser`, {
+export async function adduser(payload: User): Promise<User> {
+  const res = await fetch(`${buildBase()}?action=adduser`, {
     method: "POST",
     headers: { "content-type": "application/json", "accept": "application/json" },
     body: JSON.stringify(payload),
   });
-  return handle<AddressUserRecord>(res);
+  return handle<User>(res);
 }
 
 export async function deleteuser(username: string): Promise<void> {
-  const res = await fetch(`${buildBase()}/deleteuser`, {
+  const res = await fetch(`${buildBase()}?action=deleteuser`, {
     method: "DELETE",
     headers: { "content-type": "application/json", "accept": "application/json" },
     body: JSON.stringify({ username }),

@@ -18,27 +18,9 @@ export const UserManagement = () => {
 
   const loadUsers = async () => {
     try {
-      const records = await listuser();
-      const mapped: User[] = records.map((r) => {
-        const all = r.redis && r.mongodb && r.minio && r.postgres && r.milvus;
-        return {
-          id: r.username,
-          username: r.username,
-          email: r.email,
-          password: r.password,
-          assets: {
-            all,
-            redis: r.redis,
-            mongodb: r.mongodb,
-            minio: r.minio,
-            postgres: r.postgres,
-            milvus: r.milvus,
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      });
-      setUsers(mapped);
+      const records: User[] = await listuser();
+      console.log(records)
+      if(records) setUsers(records);
     } catch (err) {
       toast({ title: "Failed to load users", description: String(err), variant: "destructive" });
     }
@@ -48,25 +30,14 @@ export const UserManagement = () => {
     loadUsers();
   }, []);
 
-  const handleCreateUser = async (userData: CreateUserDto) => {
+  const handleCreateUser = async (userData: User) => {
     try {
-      await adduser({
-        username: userData.username,
-        email: userData.email,
-        password: userData.password,
-        options: {
-          redis: userData.assets.redis,
-          postgres: userData.assets.postgres,
-          minio: userData.assets.minio,
-          milvus: userData.assets.milvus,
-          mongodb: userData.assets.mongodb,
-        },
-      });
+      await adduser(userData);
       await loadUsers();
       setIsModalOpen(false);
       toast({
         title: "Namespace Created",
-        description: `Namespace "${userData.username}" has been created successfully.`,
+        description: `Namespace "${userData.name}" has been created successfully.`,
       });
     } catch (err) {
       toast({ title: "Create failed", description: String(err), variant: "destructive" });
@@ -78,12 +49,11 @@ export const UserManagement = () => {
 
     const updatedUser: User = {
       ...editingUser,
-      ...userData,
-      updatedAt: new Date(),
+      ...userData
     };
 
     setUsers(prev => prev.map(user => 
-      user.id === editingUser.id ? updatedUser : user
+      user.name === editingUser.name ? updatedUser : user
     ));
     
     setEditingUser(null);
@@ -91,19 +61,19 @@ export const UserManagement = () => {
 
     toast({
       title: "Namespace Updated",
-      description: `Namespace "${userData.username}" has been updated successfully.`,
+      description: `Namespace "${userData.name}" has been updated successfully.`,
     });
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    const user = users.find(u => u.id === userId);
+  const handleDeleteUser = async (username: string) => {
+    const user = users.find(u => u.name === username);
     if (!user) return;
     try {
-      await deleteuser(user.username);
+      await deleteuser(user.name);
       await loadUsers();
       toast({
         title: "Namespace Deleted",
-        description: `Namespace "${user.username}" has been deleted successfully.`,
+        description: `Namespace "${user.name}" has been deleted successfully.`,
         variant: "destructive",
       });
     } catch (err) {

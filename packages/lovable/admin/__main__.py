@@ -2,6 +2,7 @@
 #--web true
 
 import json
+from urllib.parse import urlparse, parse_qs
 from create import main as create
 from delete import main as delete
 from listuser import main as listuser
@@ -21,10 +22,20 @@ args:
 }
 """
 def main(args):
-    # Get action from path or query parameter
+    # Merge JSON body (if present) into args, so create/delete receive payload fields
+    body = args.get("__ow_body")
+    if isinstance(body, str) and body:
+        try:
+            parsed = json.loads(body)
+            if isinstance(parsed, dict):
+                # Shallow-merge body fields into args without mutating original reference
+                args = {**args, **parsed}
+        except Exception:
+            # If body is not valid JSON, ignore and proceed
+            pass
+
+    path = args.get("__ow_path")
     action = args.get("action")
-    path = args.get("__ow_path", "")
-    
     # If no action in query params, extract from path
     if not action and path:
         # Remove leading slash and get the action
@@ -40,10 +51,9 @@ def main(args):
         else:
             # If it's a path, extract the last part
             action = action.split("/")[-1]
-    
     params = {}
     if action not in ["listuser", "adduser", "deleteuser"]: 
-        params = {"error": f"Action not valid: {action}. Available actions: listuser, adduser, deleteuser. Path: {path}"}
+        params = {"error": f"Action not valid: {json.dumps(args)}"}
     elif action == "listuser": 
         params = listuser()
     elif action == "adduser": 
@@ -56,6 +66,7 @@ def main(args):
         "headers": {
             'Content-Type': 'application/json', 
         },
+        # Ensure body is JSON-serializable string for web responses
         "body": params
     }
 

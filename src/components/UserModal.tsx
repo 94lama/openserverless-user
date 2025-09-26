@@ -11,17 +11,17 @@ import { Eye, EyeOff } from "lucide-react";
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (userData: CreateUserDto) => void;
+  onSubmit: (userData: User) => void;
   user?: User | null;
   mode: "create" | "edit";
 }
 
 export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalProps) => {
-  const [formData, setFormData] = useState<CreateUserDto>({
-    username: "",
+  const [formData, setFormData] = useState<User>({
+    name: "",
     email: "",
     password: "",
-    assets: {
+    options: {
       all: false,
       redis: false,
       mongodb: false,
@@ -32,22 +32,22 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<Partial<CreateUserDto>>({});
+  const [errors, setErrors] = useState<Partial<User>>({});
 
   useEffect(() => {
     if (user && mode === "edit") {
       setFormData({
-        username: user.username,
+        name: user.name,
         email: user.email,
         password: user.password,
-        assets: { ...user.assets },
+        options: { ...user.options },
       });
     } else {
       setFormData({
-        username: "",
+        name: "",
         email: "",
         password: "",
-        assets: {
+        options: {
           all: false,
           redis: false,
           mongodb: false,
@@ -61,10 +61,10 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
   }, [user, mode, isOpen]);
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<CreateUserDto> = {};
+    const newErrors: Partial<User> = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
+    if (!formData.name.trim()) {
+      newErrors.name = "Username is required";
     }
 
     if (!formData.email.trim()) {
@@ -90,11 +90,11 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
     }
   };
 
-  const handleAssetChange = (assetName: keyof typeof formData.assets, checked: boolean) => {
+  const handleAssetChange = (assetName: keyof typeof formData.options, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      assets: {
-        ...prev.assets,
+      options: {
+        ...prev.options,
         [assetName]: checked,
         // If "all" is checked, enable all other assets
         ...(assetName === "all" && checked ? {
@@ -138,13 +138,13 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
               </Label>
               <Input
                 id="username"
-                value={formData.username}
-                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="border-input bg-background"
                 placeholder="Enter username"
               />
-              {errors.username && (
-                <p className="text-sm text-destructive">{errors.username}</p>
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
               )}
             </div>
 
@@ -207,7 +207,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
               <div className="flex items-center space-x-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <Checkbox
                   id="all-assets"
-                  checked={formData.assets.all}
+                  checked={formData.options.all}
                   onCheckedChange={(checked) => 
                     handleAssetChange("all", checked as boolean)
                   }
@@ -229,7 +229,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
                   >
                     <Checkbox
                       id={asset.key}
-                      checked={formData.assets[asset.key]}
+                      checked={formData.options[asset.key]}
                       onCheckedChange={(checked) => 
                         handleAssetChange(asset.key, checked as boolean)
                       }

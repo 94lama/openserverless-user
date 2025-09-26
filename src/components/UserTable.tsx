@@ -14,11 +14,11 @@ import { User } from "@/types/user";
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
-  onDelete: (userId: string) => void;
+  onDelete: (username: string) => void;
 }
 
 export const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
-  const getAssetBadges = (assets: User["assets"]) => {
+  const getAssetBadges = (assets: User["options"]) => {
     const enabledAssets = Object.entries(assets)
       .filter(([key, value]) => value && key !== "all")
       .map(([key]) => key);
@@ -74,13 +74,7 @@ export const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
               </div>
             </TableHead>
             <TableHead className="font-semibold text-foreground">Services</TableHead>
-            <TableHead className="font-semibold text-foreground">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4" />
-                <span>Created</span>
-              </div>
-            </TableHead>
-            <TableHead className="font-semibold text-foreground text-center">Actions</TableHead>
+            <TableHead className="font-semibold text-foreground text-center">Options</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,22 +95,17 @@ export const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
           ) : (
             users.map((user) => (
               <TableRow 
-                key={user.id} 
+                key={user.name} 
                 className="hover:bg-muted/30 transition-colors border-border/50"
               >
                 <TableCell>
-                  <div className="font-medium text-foreground">{user.username}</div>
+                  <div className="font-medium text-foreground">{user.name}</div>
                 </TableCell>
                 <TableCell>
                   <div className="text-muted-foreground">{user.email}</div>
                 </TableCell>
                 <TableCell>
-                  {getAssetBadges(user.assets)}
-                </TableCell>
-                <TableCell>
-                  <div className="text-muted-foreground text-sm">
-                    {formatDate(user.createdAt)}
-                  </div>
+                  {getAssetBadges(user.options)}
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-center space-x-2">
@@ -131,7 +120,7 @@ export const UserTable = ({ users, onEdit, onDelete }: UserTableProps) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onDelete(user.id)}
+                      onClick={() => onDelete(user.name)}
                       className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 transition-all duration-200"
                     >
                       <Trash2 className="h-4 w-4" />

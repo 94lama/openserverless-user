@@ -4,8 +4,10 @@
 // - adduser: POST a new user with options {redis, postgres, minio, milvus, mongodb}
 // - deleteuser: DELETE the selected user by username
 
+import { User } from "@/types/user";
+
 export type AddressUserRecord = {
-  username: string;
+  name: string;
   email: string;
   password: string;
   redis: boolean;
@@ -15,23 +17,11 @@ export type AddressUserRecord = {
   mongodb: boolean;
 };
 
-export type AddUserPayload = {
-  username: string;
-  email: string;
-  password: string;
-  options: {
-    redis: boolean;
-    postgres: boolean;
-    minio: boolean;
-    milvus: boolean;
-    mongodb: boolean;
-  };
-};
 
 // Seed data
 const memoryDb: AddressUserRecord[] = [
   {
-    username: "admin",
+    name: "admin",
     email: "admin@nuvolaris.io",
     password: "********",
     redis: true,
@@ -41,7 +31,7 @@ const memoryDb: AddressUserRecord[] = [
     mongodb: true,
   },
   {
-    username: "developer",
+    name: "developer",
     email: "dev@nuvolaris.io",
     password: "********",
     redis: true,
@@ -62,14 +52,14 @@ export async function listuser(): Promise<AddressUserRecord[]> {
   return memoryDb.map((u) => ({ ...u }));
 }
 
-export async function adduser(payload: AddUserPayload): Promise<AddressUserRecord> {
+export async function adduser(payload: User): Promise<AddressUserRecord> {
   await delay(150);
-  const exists = memoryDb.find((u) => u.username === payload.username);
+  const exists = memoryDb.find((u) => u.name === payload.name);
   if (exists) {
-    throw new Error(`User with username \"${payload.username}\" already exists`);
+    throw new Error(`User with name \"${payload.name}\" already exists`);
   }
   const newRec: AddressUserRecord = {
-    username: payload.username,
+    name: payload.name,
     email: payload.email,
     password: payload.password,
     redis: payload.options.redis,
@@ -84,7 +74,7 @@ export async function adduser(payload: AddUserPayload): Promise<AddressUserRecor
 
 export async function deleteuser(username: string): Promise<void> {
   await delay(150);
-  const idx = memoryDb.findIndex((u) => u.username === username);
+  const idx = memoryDb.findIndex((u) => u.name === username);
   if (idx === -1) {
     throw new Error(`User with username \"${username}\" not found`);
   }
