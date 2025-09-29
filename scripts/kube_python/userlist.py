@@ -1,0 +1,1 @@
+listuser = ["", "devel true false false false true", "admin true false false false true", "aaaaa true false false false true"] #mockup
