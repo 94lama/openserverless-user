@@ -5,8 +5,17 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
+build: {
+        outDir: "web"
+    },
+      server: {
+proxy: {
+    "/api/my": {
+        target: process.env.OPSDEV_HOST,
+        changeOrigin: true
+    }
+    },
+        host: "::",
     port: 3000,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
