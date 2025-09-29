@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 **.env
 **.zip
+
+# Python data
+**__pycache__**

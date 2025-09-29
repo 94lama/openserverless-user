@@ -1,0 +1,23 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "milvus-pod",
+    "labels": {
+      "app": "webserver"
+    }
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "milvus-container",
+        "image": "milvus",
+        "ports": [
+          {
+            "containerPort": 19530
+          }
+        ]
+      }
+    ]
+  }
+}
