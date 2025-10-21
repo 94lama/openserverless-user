@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, CreateUserDto } from "@/types/user";
+import { User } from "@/types/user";
 import { Eye, EyeOff } from "lucide-react";
 
 interface UserModalProps {
@@ -28,6 +28,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
       minio: false,
       postgres: false,
       milvus: false,
+      seaweed: false,
     },
   });
 
@@ -54,6 +55,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
           minio: false,
           postgres: false,
           milvus: false,
+          seaweed: false,
         },
       });
     }
@@ -103,6 +105,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
           minio: true,
           postgres: true,
           milvus: true,
+          seaweed: true,
         } : {}),
         // If any individual asset is unchecked, uncheck "all"
         ...(assetName !== "all" && !checked ? {
@@ -118,6 +121,7 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
     { key: "minio" as const, label: "MinIO", description: "Object storage service" },
     { key: "postgres" as const, label: "PostgreSQL", description: "Relational database" },
     { key: "milvus" as const, label: "Milvus", description: "Vector database" },
+    { key: "seaweed" as const, label: "SeaweedFS", description: "Distributed file system" },
   ];
 
   return (

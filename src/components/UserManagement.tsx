@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { UserModal } from "./UserModal";
 import { UserTable } from "./UserTable";
-import { User, CreateUserDto } from "@/types/user";
+import { User } from "@/types/user";
 import { useToast } from "@/hooks/use-toast";
 import nuvolaris_logo from "@/assets/nuvolaris-logo.png";
 import { listuser, adduser, deleteuser } from "@/lib/addressClient";
@@ -44,7 +44,7 @@ export const UserManagement = () => {
     }
   };
 
-  const handleEditUser = (userData: CreateUserDto) => {
+  const handleEditUser = (userData: User) => {
     if (!editingUser) return;
 
     const updatedUser: User = {

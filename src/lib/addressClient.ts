@@ -51,7 +51,7 @@ async function handle<T>(res: Response): Promise<T> {
 }
 
 export async function listuser(): Promise<User[]> {
-  const res = await fetch(`${buildBase()}/devel/kube/listuser`, {
+  const res = await fetch(`${buildBase()}devel/kube/listuser`, {
     method: "GET",
     headers: { "accept": "application/json" },
   });
@@ -61,19 +61,30 @@ export async function listuser(): Promise<User[]> {
 }
 
 export async function adduser(payload: User): Promise<User> {
-  const res = await fetch(`${buildBase()}?action=adduser`, {
+  const flatPayload = {
+    name: payload.name,
+    email: payload.email,
+    password: payload.password,
+    redis: payload.options.redis,
+    mongo: payload.options.mongodb,
+    postgres: payload.options.postgres,
+    minio: payload.options.minio,
+    milvus: payload.options.milvus,
+  };
+  
+  const res = await fetch(`${buildBase()}devel/kube/adduser`, {
     method: "POST",
     headers: { "content-type": "application/json", "accept": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(flatPayload),
   });
   return handle<User>(res);
 }
 
 export async function deleteuser(username: string): Promise<void> {
-  const res = await fetch(`${buildBase()}?action=deleteuser`, {
-    method: "DELETE",
+  const res = await fetch(`${buildBase()}devel/kube/deleteuser`, {
+    method: "POST",
     headers: { "content-type": "application/json", "accept": "application/json" },
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ name: username }),
   });
   await handle(res);
 }
