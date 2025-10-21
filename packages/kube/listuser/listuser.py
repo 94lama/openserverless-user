@@ -24,7 +24,7 @@ def build_user_object(user):
     mongodb = user.get('spec', {}).get('mongodb', {}).get('enabled', False)
     milvus = user.get('spec', {}).get('milvus', {}).get('enabled', False)
 
-    return json.dumps({
+    return {
         "name": name,
         "email": email,
         "options": {
@@ -34,11 +34,11 @@ def build_user_object(user):
             "mongodb": mongodb,
             "milvus": milvus,
         }
-    })
+    }
 
 """ List all users in the kubernetes cluster based on the custom resource WhisksUsers.
-it reads the kubeconfig from args['KUBECONFIG'] in base64.
-Returns {"output": <array of usernames>} or {"output": "Error: <error message>"}
+    it reads the kubeconfig from args['KUBECONFIG'] in base64.
+    Returns {"output": <array of usernames>} or {"output": "Error: <error message>"}
 """
 def listuser(args):
     # reads the KUBECONFIG value from env variable. If not found, defaults to empty string.

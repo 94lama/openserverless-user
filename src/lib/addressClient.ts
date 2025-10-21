@@ -35,10 +35,9 @@ export type AddUserPayload = {
 
 function buildBase(): string {
   const base = (import.meta as any).env?.VITE_OPENSERVERLESS_BASE_URL as string | undefined;
-  console.log(base)
   const trimmed = base ?? "";
   // Default relative path assumes a reverse proxy is configured during dev/prod
-  return `${trimmed}/api/v1/web/lovable/admin`;
+  return `${trimmed}/api/v1/web/`;
 }
 
 async function handle<T>(res: Response): Promise<T> {
@@ -52,13 +51,13 @@ async function handle<T>(res: Response): Promise<T> {
 }
 
 export async function listuser(): Promise<User[]> {
-  const res = await fetch(`${buildBase()}?action=listuser`, {
+  const res = await fetch(`${buildBase()}/devel/kube/listuser`, {
     method: "GET",
     headers: { "accept": "application/json" },
   });
 
   const response = await handle<WebActionResponse<User[]>>(res);
-  return response.body;
+  return response["output"];
 }
 
 export async function adduser(payload: User): Promise<User> {
