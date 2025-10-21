@@ -69,6 +69,7 @@ export async function adduser(payload: User): Promise<User> {
     mongo: payload.options.mongodb,
     postgres: payload.options.postgres,
     minio: payload.options.minio,
+    seaweed: payload.options.seaweed,
     milvus: payload.options.milvus,
   };
   
