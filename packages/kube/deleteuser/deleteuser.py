@@ -33,7 +33,7 @@ def deleteuser(args):
     # Load kubeconfig from the file and set up configuration
     config.load_kube_config(config_file=filepath["output"])
     configuration = client.Configuration.get_default_copy()
-    configuration.api_key = {"authorization": "Bearer <token>"}
+    #configuration.api_key = {"authorization": "Bearer <token>"}
 
     if (filepath.get("output", "").startswith("Error")):
         return filepath

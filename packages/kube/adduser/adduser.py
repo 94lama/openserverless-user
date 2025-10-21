@@ -43,7 +43,7 @@ def adduser(args):
     # Load kubeconfig from the file and set up configuration
     config.load_kube_config(config_file=filepath["output"])
     configuration = client.Configuration.get_default_copy()
-    configuration.api_key = {"authorization": "Bearer <token>"}
+    #configuration.api_key = {"authorization": "Bearer <token>"}
 
     if (filepath.get("output", "").startswith("Error")):
         return filepath
@@ -63,14 +63,14 @@ def adduser(args):
                 "name": name,
                 "email": email,
                 "password": password,
-                "namespace": NAMESPACE,  # <-- Add required field
-                "auth": args.get("auth", ""),  # <-- Add required field, set to empty string or proper value
-                "enableRedis": args.get('redis', 'false') == 'true',
-                "enableMongo": args.get('mongodb', 'false') == 'true',
-                "enablePostgres": args.get('postgres', 'false') == 'true',
-                "enableMinio": args.get('minio', 'false') == 'true',
-                "enableSeaweedFS": args.get('seaweedfs', 'false') == 'true',
-                "enableMilvus": args.get('milvus', 'false') == 'true'
+                "namespace": NAMESPACE,
+                "auth": args.get("auth", ""),
+                "enableRedis": args.get('redis', 'false') == True,
+                "enableMongo": args.get('mongodb', 'false') == True,
+                "enablePostgres": args.get('postgres', 'false') == True,
+                "enableMinio": args.get('minio', 'false') == True,
+                "enableSeaweedFS": args.get('seaweedfs', 'false') == True,
+                "enableMilvus": args.get('milvus', 'false') == True
             }
         }
 

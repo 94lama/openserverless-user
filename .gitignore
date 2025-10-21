@@ -27,3 +27,6 @@ dist-ssr
 
 # Python data
 **__pycache__**
+
+# Kubernetes files
+.kube

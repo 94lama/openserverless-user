@@ -1,5 +1,5 @@
 """
-Read the kubeconfig as args['kubeconfig] in base64
+Read the kubeconfig as args['kubeconfig'] in base64
 Access the kubernetes api and list all the namespaces.
 Return `{"output": <array of namespaces>}`.
 """
