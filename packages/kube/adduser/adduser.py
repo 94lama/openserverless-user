@@ -6,35 +6,99 @@ Return `{"output": <array of namespaces>}`.
 import base64, tempfile, os, re, subprocess
 from config import load_kube_config
 from kubernetes import client, config
+import secrets, string
 
 def verify_name(name): # returns error dict if name is not valid
-    pattern = r"^[a-z0-9](?:[a-z0-9]{0,61}[a-z0-9])?$"
+    #pattern = r"^[a-z0-9](?:[a-z0-9]{0,61}[a-z0-9])?$"
+    pattern = r"^[a-z][a-z0-9]{4,61}$"
     if not name:
-        return {"output": "Error: name parameter is required"}
+        raise ValueError("Error: name parameter is required")
     elif not re.fullmatch(pattern, name):
-        return {"output": "Error: name parameter must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (max 61 characters)"}
+        raise ValueError("Error: name parameter must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (max 61 characters)")
+    else:
+        return name
 
-def verify_email(email): # returns False if ok, error dict if email not valid
+def verify_email(email):
     if not email:
-        return {"output": "Error: email parameter is required"}
+        raise ValueError("Error: email parameter is required")
     elif "@" not in email or "." not in email:
-        return {"output": "Error: email parameter must be a valid email address"}
+        raise ValueError("Error: email parameter must be a valid email address")
+    else:
+        return email
 
-def verify_password(password): # returns False if ok, error dict if password not valid
+def verify_password(password):
     if not password:
-        return {"output": "Error: password parameter is required"}
+        raise ValueError("Error: password parameter is required")
     elif len(password) < 5:
-        return {"output": "Error: password parameter must be at least 8 characters long"}
+        raise ValueError("Error: password parameter must be at least 5 characters long")
+    else:
+        return password
+
+"""
+Generate an auth token matching the structure:
+<name>:<64-char-random-string>
+where name is a short lowercase alphanumeric string starting with a letter.
+"""
+def generate_auth_secret(name, password):
+    # name-like part (starts with a lowercase letter)
+    user_len = 8
+    first = secrets.choice(string.ascii_lowercase)
+    rest = ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(user_len - 1))
+    user = first + rest
+
+    # secret part: 64 characters, alphanumeric
+    secret = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(64))
+
+    return f"{user}:{secret}"
+
+"""Generate secrets for services, following the structure:
+"${NAME}_SECRET_OPENWHISK"="$(random --uuid):$(random --str 64)"
+"${NAME}_SECRET_COUCHDB"="$(random --str 12)"
+"${NAME}_SECRET_REDIS"="$(random --str 12)"
+"${NAME}_SECRET_MONGODB"="$(random --str 12)"
+"${NAME}_SECRET_MINIO"="$(random --str 40)"
+"${NAME}_SECRET_POSTGRES"="$(random --str 12)"
+"${NAME}_SECRET_MILVUS"="$(random --str 12)"
+"""
+def generate_secrets(name):
+    secrets_dict = {}
+
+    services = {
+        "openwhisk": 64,
+        "couchdb": 12,
+        "redis": 12,
+        "mongodb": 12,
+        "minio": 40,
+        "postgres": 12,
+        "milvus": 12
+    }
+
+    for service, length in services.items():
+        secret_value = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
+        secret = f"{secrets.token_hex(16)}:{secret_value}" if service == "openwhisk" else secret_value
+        secrets_dict[f"{name.upper()}_SECRET_{service.upper()}"] = secret
+        os.environ[f"{name.upper()}_SECRET_{service.upper()}"] = secret
+
+    return secrets_dict
+
+def generate_spec_object(spec, args):
+    """Generate specification object for services"""
+    return {
+        "enabled": args.get(spec, False),
+        "prefix": args.get('name', ''),
+        "password": args.get('password', ''),
+    }
 
 def adduser(args):
-    name = args.get('name', '')
-    verify_name(name)
-    email = args.get('email', '')
-    verify_email(email)
-    password = str(args.get('password', ''))
-    verify_password(password)
+    name = verify_name(args.get('name', ''))
+    password = verify_password(args.get('password', ''))
+    email = verify_email(args.get('email', ''))
+    auth_secret = generate_auth_secret(name, password)
 
     filepath = load_kube_config(args.get('kubeconfig', os.getenv('KUBECONFIG', '')))
+    if (filepath.get("output", "").startswith("Error")):
+        return filepath
+
     GROUP = args.get("groups", "nuvolaris.org")
     VERSION = args.get("version", "v1")
     PLURAL = args.get("plural", "whisksusers")
@@ -43,15 +107,13 @@ def adduser(args):
     # Load kubeconfig from the file and set up configuration
     config.load_kube_config(config_file=filepath["output"])
     configuration = client.Configuration.get_default_copy()
-    #configuration.api_key = {"authorization": "Bearer <token>"}
-
-    if (filepath.get("output", "").startswith("Error")):
-        return filepath
 
     try:
         api_client = client.ApiClient(configuration)
         api_client_instance = client.CustomObjectsApi(api_client)
+        service_secrets = generate_secrets(name)
 
+        # Create the WhiskUser resource with proper structure
         resource_body = {
             "apiVersion": f"{GROUP}/{VERSION}",
             "kind": "WhiskUser",
@@ -60,22 +122,60 @@ def adduser(args):
                 "namespace": NAMESPACE
             },
             "spec": {
-                "name": name,
                 "email": email,
                 "password": password,
-                "namespace": NAMESPACE,
-                "auth": args.get("auth", ""),
-                "enableRedis": args.get('redis', 'false') == True,
-                "enableMongo": args.get('mongodb', 'false') == True,
-                "enablePostgres": args.get('postgres', 'false') == True,
-                "enableMinio": args.get('minio', 'false') == True,
-                "enableSeaweedFS": args.get('seaweedfs', 'false') == True,
-                "enableMilvus": args.get('milvus', 'false') == True
-            }
+                "namespace": name,  # Use user's name as their namespace
+                "auth": auth_secret,  # Use generated auth_secret instead of empty string
+                "redis": {
+                    "enabled": args.get("redis", False),
+                    "prefix": name,
+                    "password": service_secrets.get(f"{name.upper()}_SECRET_REDIS", "")
+                },
+                "mongodb": {
+                    "enabled": args.get("mongodb", False),
+                    "database": name,
+                    "password": service_secrets.get(f"{name.upper()}_SECRET_MONGODB", ""),
+                },
+                "postgres": {
+                    "enabled": args.get("postgres", False),
+                    "database": name,
+                    "password": service_secrets.get(f"{name.upper()}_SECRET_POSTGRES", ""),
+                },
+                "object-storage": {
+                    "password": service_secrets.get(f"{name.upper()}_SECRET_MINIO", ""),
+                    "quota": f"{args.get('minio_storage_quota', 'auto')}",
+                    "data": {
+                        "enabled": args.get("minio_data", False),
+                        "bucket": f"{name}-data",
+                    },
+                    "route": {
+                        "enabled": args.get("minio_static", False),
+                        "bucket": f"{name}-web",
+                    },
+                },
+                "milvus": {
+                    "enabled": args.get("milvus", False),
+                    "database": name,
+                    "password": service_secrets.get(f"{name.upper()}_SECRET_MILVUS", ""),
+                },
+            },
         }
 
-        # Create the custom resource in Kubernetes
-        res = api_client_instance.create_namespaced_custom_object(
+        # Update service configurations if specified
+        services = ["postgres", "redis", "mongodb", "milvus"]
+        for service in services:
+            if args.get(service, False):
+                resource_body["spec"][service] = {
+                    "enabled": True,
+                    "prefix": name,
+                    "password": service_secrets.get(f"{name.upper()}_SECRET_{service.upper()}", "")
+                }
+
+        # Handle MinIO separately as it doesn't follow the same structure
+        if args.get("minio", False):
+            resource_body["spec"]["minio"] = True
+
+        api_client_instance.create_namespaced_custom_object(
             group=GROUP,
             version=VERSION,
             namespace=NAMESPACE,

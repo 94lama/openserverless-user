@@ -83,7 +83,7 @@ export async function adduser(payload: User): Promise<User> {
 
 export async function deleteuser(username: string): Promise<void> {
   const res = await fetch(`${buildBase()}devel/kube/deleteuser`, {
-    method: "POST",
+    method: "DELETE",
     headers: { "content-type": "application/json", "accept": "application/json" },
     body: JSON.stringify({ name: username }),
   });

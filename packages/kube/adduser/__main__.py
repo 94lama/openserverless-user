@@ -2,6 +2,9 @@
 #--web true
 #--param kubeconfig "$KUBECONFIG"
 
-import adduser
+from adduser import adduser
+
 def main(args):
-  return { "body": adduser.adduser(args) }
+  if args.get("__ow_method", "POST").upper() != "POST":
+        return {"statusCode": 405, "body": {"error": "Method not allowed"}}
+  return { "body": adduser(args) }
