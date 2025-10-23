@@ -62,4 +62,4 @@ def test_listuser_integration():
         assert "name" in user
         assert "email" in user
         assert "spec" in user
-        assert all(k in user["spec"] for k in ["redis", "mongo", "postgres", "minio", "seaweedFS", "milvus"])
+        assert all(k in user["spec"] for k in ["redis", "mongodb", "postgres", "minio", "seaweedFS", "milvus"])

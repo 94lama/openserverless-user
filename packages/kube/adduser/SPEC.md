@@ -20,7 +20,7 @@ The body of the request will have a JSON object with the interface:
   "name": string,
   "email": string,
   "redis": boolean,
-  "mongo": boolean,
+  "mongodb": boolean,
   "postgres": boolean,
   "minio": boolean,
   "seaweed": boolean,

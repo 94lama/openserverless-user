@@ -61,22 +61,10 @@ export async function listuser(): Promise<User[]> {
 }
 
 export async function adduser(payload: User): Promise<User> {
-  const flatPayload = {
-    name: payload.name,
-    email: payload.email,
-    password: payload.password,
-    redis: payload.options.redis,
-    mongo: payload.options.mongodb,
-    postgres: payload.options.postgres,
-    minio: payload.options.minio,
-    seaweed: payload.options.seaweed,
-    milvus: payload.options.milvus,
-  };
-  
   const res = await fetch(`${buildBase()}devel/kube/adduser`, {
     method: "POST",
     headers: { "content-type": "application/json", "accept": "application/json" },
-    body: JSON.stringify(flatPayload),
+    body: JSON.stringify(payload),
   });
   return handle<User>(res);
 }
@@ -89,5 +77,3 @@ export async function deleteuser(username: string): Promise<void> {
   });
   await handle(res);
 }
-
-

@@ -52,17 +52,16 @@ def generate_auth_secret(name, password):
     return f"{user}:{secret}"
 
 """Generate secrets for services, following the structure:
-"${NAME}_SECRET_OPENWHISK"="$(random --uuid):$(random --str 64)"
-"${NAME}_SECRET_COUCHDB"="$(random --str 12)"
-"${NAME}_SECRET_REDIS"="$(random --str 12)"
-"${NAME}_SECRET_MONGODB"="$(random --str 12)"
-"${NAME}_SECRET_MINIO"="$(random --str 40)"
-"${NAME}_SECRET_POSTGRES"="$(random --str 12)"
-"${NAME}_SECRET_MILVUS"="$(random --str 12)"
+    "${NAME}_SECRET_OPENWHISK"="$(random --uuid):$(random --str 64)"
+    "${NAME}_SECRET_COUCHDB"="$(random --str 12)"
+    "${NAME}_SECRET_REDIS"="$(random --str 12)"
+    "${NAME}_SECRET_MONGODB"="$(random --str 12)"
+    "${NAME}_SECRET_MINIO"="$(random --str 40)"
+    "${NAME}_SECRET_POSTGRES"="$(random --str 12)"
+    "${NAME}_SECRET_MILVUS"="$(random --str 12)"
 """
 def generate_secrets(name):
     secrets_dict = {}
-
     services = {
         "openwhisk": 64,
         "couchdb": 12,
@@ -70,24 +69,17 @@ def generate_secrets(name):
         "mongodb": 12,
         "minio": 40,
         "postgres": 12,
-        "milvus": 12
+        "milvus": 12,
+        "seaweed": 12,
     }
 
     for service, length in services.items():
         secret_value = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
         secret = f"{secrets.token_hex(16)}:{secret_value}" if service == "openwhisk" else secret_value
-        secrets_dict[f"{name.upper()}_SECRET_{service.upper()}"] = secret
-        os.environ[f"{name.upper()}_SECRET_{service.upper()}"] = secret
+        secrets_dict[f"{name}_SECRET_{service}".upper()] = secret
+        os.environ[f"{name}_SECRET_{service}".upper()] = secret
 
     return secrets_dict
-
-def generate_spec_object(spec, args):
-    """Generate specification object for services"""
-    return {
-        "enabled": args.get(spec, False),
-        "prefix": args.get('name', ''),
-        "password": args.get('password', ''),
-    }
 
 def adduser(args):
     name = verify_name(args.get('name', ''))
@@ -126,21 +118,11 @@ def adduser(args):
                 "password": password,
                 "namespace": name,  # Use user's name as their namespace
                 "auth": auth_secret,  # Use generated auth_secret instead of empty string
-                "redis": {
-                    "enabled": args.get("redis", False),
-                    "prefix": name,
-                    "password": service_secrets.get(f"{name.upper()}_SECRET_REDIS", "")
-                },
-                "mongodb": {
-                    "enabled": args.get("mongodb", False),
-                    "database": name,
-                    "password": service_secrets.get(f"{name.upper()}_SECRET_MONGODB", ""),
-                },
-                "postgres": {
-                    "enabled": args.get("postgres", False),
-                    "database": name,
-                    "password": service_secrets.get(f"{name.upper()}_SECRET_POSTGRES", ""),
-                },
+                "redis": {"enabled": False},
+                "mongodb": {"enabled": False},
+                "postgres": {"enabled": False},
+                "milvus": {"enabled": False},
+                "seaweed": {"enabled": False},
                 "object-storage": {
                     "password": service_secrets.get(f"{name.upper()}_SECRET_MINIO", ""),
                     "quota": f"{args.get('minio_storage_quota', 'auto')}",
@@ -153,28 +135,26 @@ def adduser(args):
                         "bucket": f"{name}-web",
                     },
                 },
-                "milvus": {
-                    "enabled": args.get("milvus", False),
-                    "database": name,
-                    "password": service_secrets.get(f"{name.upper()}_SECRET_MILVUS", ""),
-                },
             },
         }
-
-        # Update service configurations if specified
-        services = ["postgres", "redis", "mongodb", "milvus"]
-        for service in services:
-            if args.get(service, False):
-                resource_body["spec"][service] = {
+        # Enable services based on args
+        if args["options"].get("redis", False):
+            resource_body["spec"]["redis"] = {
+                "enabled": True,
+                "prefix": name,
+                "password": service_secrets.get(f"{name.upper()}_SECRET_REDIS", ""),
+            }
+        for item in ["mongodb", "postgres", "milvus", "seaweed"]:
+            if args["options"].get(item, False):
+                resource_body["spec"][item] = {
                     "enabled": True,
-                    "prefix": name,
-                    "password": service_secrets.get(f"{name.upper()}_SECRET_{service.upper()}", "")
+                    "database": name,
+                    "password": service_secrets.get(f"{name}_SECRET_{item}".upper(), ""),
                 }
 
-        # Handle MinIO separately as it doesn't follow the same structure
-        if args.get("minio", False):
-            resource_body["spec"]["minio"] = True
-
+        print(args)
+        print(resource_body)
+        # Create the custom resource in Kubernetes
         api_client_instance.create_namespaced_custom_object(
             group=GROUP,
             version=VERSION,
