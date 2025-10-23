@@ -1,7 +1,0 @@
-# Logs
-logs
-*.log
-
-# Python data
-**__pycache__
-**.venv

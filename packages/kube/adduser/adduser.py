@@ -118,11 +118,6 @@ def adduser(args):
                 "password": password,
                 "namespace": name,  # Use user's name as their namespace
                 "auth": auth_secret,  # Use generated auth_secret instead of empty string
-                "redis": {"enabled": False},
-                "mongodb": {"enabled": False},
-                "postgres": {"enabled": False},
-                "milvus": {"enabled": False},
-                "seaweed": {"enabled": False},
                 "object-storage": {
                     "password": service_secrets.get(f"{name.upper()}_SECRET_MINIO", ""),
                     "quota": f"{args.get('minio_storage_quota', 'auto')}",
@@ -144,8 +139,9 @@ def adduser(args):
                 "prefix": name,
                 "password": service_secrets.get(f"{name.upper()}_SECRET_REDIS", ""),
             }
+        print(args.get("options", {}))
         for item in ["mongodb", "postgres", "milvus", "seaweed"]:
-            if args["options"].get(item, False):
+            if args["options"].get(item, False) == True:
                 resource_body["spec"][item] = {
                     "enabled": True,
                     "database": name,

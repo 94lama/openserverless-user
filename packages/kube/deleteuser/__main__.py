@@ -3,7 +3,21 @@
 #--param kubeconfig "$KUBECONFIG"
 
 from deleteuser import deleteuser
+
 def main(args):
-  if args.get("__ow_method", "DELETE").upper() != "DELETE":
-        return {"statusCode": 405, "body": {"error": "Method not allowed"}}
-  return { "body": deleteuser(args) }
+    if args.get("__ow_method", "DELETE").upper() != "DELETE":
+        return {
+            "statusCode": 405,
+            "body": {"error": "Method not allowed"}
+        }
+    
+    result = deleteuser(args)
+    if "Error" in result.get("output", ""):
+        return {
+            "statusCode": 404,
+            "body": result
+        }
+    return {
+        "statusCode": 200,
+        "body": result
+    }

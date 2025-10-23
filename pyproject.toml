@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openserverless-user"
+version = "0.0.1"
+dependencies = [
+    "pytest",
+    "pytest-cov",
+    "requests",
+    "testcontainers",
+    "redis",
+    "kubernetes"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=packages"

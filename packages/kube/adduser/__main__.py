@@ -5,6 +5,19 @@
 from adduser import adduser
 
 def main(args):
-  if args.get("__ow_method", "POST").upper() != "POST":
-        return {"statusCode": 405, "body": {"error": "Method not allowed"}}
-  return { "body": adduser(args) }
+    if args.get("__ow_method", "POST").upper() != "POST":
+        return {
+            "statusCode": 405,
+            "body": {"error": "Method not allowed"}
+        }
+    
+    result = adduser(args)
+    if "Error" in result.get("output", ""):
+        return {
+            "statusCode": 400,
+            "body": result
+        }
+    return {
+        "statusCode": 200,
+        "body": result
+    }

@@ -50,7 +50,7 @@ def test_listuser_integration():
     if not host:
         pytest.skip("OPSDEV_HOST not set")
         
-    response = requests.get(f"{host}/api/my/kube/listuser")
+    response = requests.get(f"{host}/api/devel/kube/listuser")
     
     assert response.status_code == 200
     data = response.json()

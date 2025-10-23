@@ -115,3 +115,11 @@ def milvus():
 
     yield container
     container.stop()
+
+@pytest.fixture(scope="session")
+def api_url():
+    """Get the API base URL from environment"""
+    host = os.getenv("VITE_OPENSERVERLESS_BASE_URL")
+    if not host:
+        pytest.skip("VITE_OPENSERVERLESS_BASE_URL environment variable not set")
+    return f"{host}/api/devel"

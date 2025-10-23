@@ -5,6 +5,19 @@
 from listuser import listuser
 
 def main(args):
-  if args.get("__ow_method", "GET").upper() != "GET":
-      return {"statusCode": 405, "body": {"error": "Method not allowed"}}
-  return {"body": listuser(args)}
+    if args.get("__ow_method", "GET").upper() != "GET":
+        return {
+            "statusCode": 405,
+            "body": {"error": "Method not allowed"}
+        }
+    
+    result = listuser(args)
+    if "Error" in result.get("output", ""):
+        return {
+            "statusCode": 400,
+            "body": result
+        }
+    return {
+        "statusCode": 200,
+        "body": result
+    }
