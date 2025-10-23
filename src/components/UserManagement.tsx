@@ -6,23 +6,27 @@ import { UserModal } from "./UserModal";
 import { UserTable } from "./UserTable";
 import { User } from "@/types/user";
 import { useToast } from "@/hooks/use-toast";
+import { Loader } from "@/components/ui/loader";
 import nuvolaris_logo from "@/assets/nuvolaris-logo.png";
 import { listuser, adduser, deleteuser } from "@/lib/addressClient";
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const { toast } = useToast();
 
   const loadUsers = async () => {
+    setIsLoading(true);
     try {
       const records: User[] = await listuser();
       console.log(records)
       if(records) setUsers(records);
     } catch (err) {
       toast({ title: "Failed to load users", description: String(err), variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -31,6 +35,7 @@ export const UserManagement = () => {
   }, []);
 
   const handleCreateUser = async (userData: User) => {
+    setIsLoading(true);
     try {
       await adduser(userData);
       await loadUsers();
@@ -41,6 +46,8 @@ export const UserManagement = () => {
       });
     } catch (err) {
       toast({ title: "Create failed", description: String(err), variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,6 +75,7 @@ export const UserManagement = () => {
   const handleDeleteUser = async (username: string) => {
     const user = users.find(u => u.name === username);
     if (!user) return;
+    setIsLoading(true);
     try {
       await deleteuser(user.name);
       await loadUsers();
@@ -78,6 +86,8 @@ export const UserManagement = () => {
       });
     } catch (err) {
       toast({ title: "Delete failed", description: String(err), variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -153,6 +163,16 @@ export const UserManagement = () => {
         user={editingUser}
         mode={editingUser ? "edit" : "create"}
       />
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-card p-6 rounded-lg shadow-lg flex items-center space-x-4">
+            <Loader size="lg" />
+            <p className="text-foreground text-lg">Processing...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

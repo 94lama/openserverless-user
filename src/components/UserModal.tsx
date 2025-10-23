@@ -126,137 +126,139 @@ export const UserModal = ({ isOpen, onClose, onSubmit, user, mode }: UserModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-gradient-card border-0 shadow-card">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl h-[90vh] bg-gradient-card border-0 shadow-card">
+        <DialogHeader className="px-6 py-4">
           <DialogTitle className="text-2xl text-foreground">
             {mode === "create" ? "Create New Namespace" : "Edit Namespace"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-foreground font-medium">
-                Username
-              </Label>
-              <Input
-                id="username"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="border-input bg-background"
-                placeholder="Enter username"
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name}</p>
-              )}
-            </div>
+        <form onSubmit={handleSubmit} className="flex flex-col h-[calc(90vh-8rem)]">
+          <div className="flex-1 overflow-y-auto px-6 pb-4">
+            <div className="space-y-4">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-foreground font-medium">
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    className="border-input bg-background"
+                    placeholder="Enter username"
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-destructive">{errors.name}</p>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground font-medium">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="border-input bg-background"
-                placeholder="Enter email address"
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground font-medium">
-              Password
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                className="border-input bg-background pr-10"
-                placeholder="Enter password"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password}</p>
-            )}
-          </div>
-
-          {/* Assets Section */}
-          <Card className="bg-accent/50 border-border/50">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg text-foreground">Enable Services</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Choose which services to enable for this namespace
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* All Assets Toggle */}
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <Checkbox
-                  id="all-assets"
-                  checked={formData.options.all}
-                  onCheckedChange={(checked) => 
-                    handleAssetChange("all", checked as boolean)
-                  }
-                />
-                <Label 
-                  htmlFor="all-assets" 
-                  className="text-foreground font-medium cursor-pointer flex-1"
-                >
-                  Enable All Services
-                </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-foreground font-medium">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="border-input bg-background"
+                    placeholder="Enter email address"
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Individual Assets */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {assetOptions.map((asset) => (
-                  <div 
-                    key={asset.key}
-                    className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50 border border-border/50"
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-foreground font-medium">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    className="border-input bg-background pr-10"
+                    placeholder="Enter password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
                   >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
+              </div>
+
+              {/* Assets Section */}
+              <Card className="border-border/50">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg text-foreground">Enable Services</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Choose which services to enable for this namespace
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
                     <Checkbox
-                      id={asset.key}
-                      checked={formData.options[asset.key]}
+                      id="all-assets"
+                      checked={formData.options.all}
                       onCheckedChange={(checked) => 
-                        handleAssetChange(asset.key, checked as boolean)
+                        handleAssetChange("all", checked as boolean)
                       }
                     />
-                    <div className="flex-1">
-                      <Label 
-                        htmlFor={asset.key} 
-                        className="text-foreground font-medium cursor-pointer block"
-                      >
-                        {asset.label}
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {asset.description}
-                      </p>
-                    </div>
+                    <Label 
+                      htmlFor="all-assets" 
+                      className="text-foreground font-medium cursor-pointer flex-1"
+                    >
+                      Enable All Services
+                    </Label>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {assetOptions.map((asset) => (
+                      <div 
+                        key={asset.key}
+                        className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50 border border-border/50"
+                      >
+                        <Checkbox
+                          id={asset.key}
+                          checked={formData.options[asset.key]}
+                          onCheckedChange={(checked) => 
+                            handleAssetChange(asset.key, checked as boolean)
+                          }
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Label 
+                            htmlFor={asset.key} 
+                            className="text-foreground font-medium cursor-pointer block truncate"
+                          >
+                            {asset.label}
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {asset.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Actions - Fixed at bottom */}
+          <div className="flex justify-end space-x-3 p-6 mt-4 border-t border-border/10">
             <Button
               type="button"
               variant="outline"
