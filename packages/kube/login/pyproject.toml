@@ -1,0 +1,6 @@
+[project]
+name = "login"
+version = "0.1.0"
+description = "Login service"
+requires-python = ">=3.12"
+dependencies = []
