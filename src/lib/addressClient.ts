@@ -59,7 +59,7 @@ async function handle<T>(res: Response): Promise<T> {
 export async function listuser(): Promise<User[]> {
   const res = await fetch(`${buildBase()}devel/kube/listuser`, {
     method: "GET",
-    headers: { "accept": "application/json", "content-type": "application/json", "Authorization": buildAuthHeader()},
+    headers: { "accept": "application/json", "content-type": "application/json" }
   });
 
   const response = await handle<WebActionResponse<User[]>>(res);
