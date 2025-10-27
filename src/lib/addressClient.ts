@@ -1,6 +1,7 @@
 // HTTP client for OpenServerless web action lovable/admin/address
 // Uses VITE_OPENSERVERLESS_BASE_URL to construct the full URL, or relative if not set
 
+import { HTTPUser } from "@/contexts/AuthContext";
 import { User } from "@/types/user";
 
 export type WebActionResponse<T> = {
@@ -33,6 +34,11 @@ export type AddUserPayload = {
   };
 };
 
+function buildAuthHeader(): string {
+  const user = JSON.parse(localStorage.getItem('user') || '{}') as HTTPUser | null;
+  return user ? `Bearer ${user.token}` : "";
+}
+
 function buildBase(): string {
   const base = (import.meta as any).env?.VITE_OPENSERVERLESS_BASE_URL as string | undefined;
   const trimmed = base ?? "";
@@ -53,7 +59,7 @@ async function handle<T>(res: Response): Promise<T> {
 export async function listuser(): Promise<User[]> {
   const res = await fetch(`${buildBase()}devel/kube/listuser`, {
     method: "GET",
-    headers: { "accept": "application/json" },
+    headers: { "accept": "application/json", "content-type": "application/json", "Authorization": buildAuthHeader()},
   });
 
   const response = await handle<WebActionResponse<User[]>>(res);

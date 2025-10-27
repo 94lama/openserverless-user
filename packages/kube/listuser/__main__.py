@@ -10,7 +10,6 @@ def main(args):
             "statusCode": 405,
             "body": {"error": "Method not allowed"}
         }
-    
     result = listuser(args)
     if "Error" in result.get("output", ""):
         return {
